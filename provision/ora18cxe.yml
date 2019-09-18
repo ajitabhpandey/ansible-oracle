@@ -1,0 +1,93 @@
+---
+  - hosts: all
+    gather_facts: yes
+    become: true
+
+    vars:
+      ORADATA: "/opt/oradata/"
+
+    tasks:
+      - name: Install Oracle 18c XE from local filesystem
+        yum:
+          name: 
+            - /tmp/oracle-database-preinstall-18c-1.0-1.el7.x86_64.rpm
+            - /tmp/oracle-database-xe-18c-1.0-1.x86_64.rpm
+          state: present
+
+      - name: Check if {{ ORADATA }} exists
+        stat:
+          path: "{{ ORADATA }}"
+        register: oradata_file_details
+      
+      - debug:
+          msg: "{{ ORADATA }} exists"
+        when: oradata_file_details.stat.exists
+
+      - name: Creating {{ ORADATA }} if it does not exist
+        file:
+          path: "{{ ORADATA }}"
+          state: directory
+          mode: '0750'
+          owner: oracle
+          group: dba
+          recurse: yes
+        when: ! oradata_file_details.stat.exists
+        
+      - name: Change the ownership and permissions if {{ ORADATA }} directory exists
+        file:
+          path: "{{ ORADATA }}"
+          mode: '0750'
+          owner: oracle
+          group: dba
+          recurse: yes
+        when: oradata_file_details.stat.exists and oradata_file_details.stat.isdir == true
+      
+      - name: Change the ownership and permissions of target if {{ ORADATA }} is a symlink
+        file:
+          path: "{{ ORADATA }}"
+          mode: '0750'
+          owner: oracle
+          group: dba
+          follow: yes
+        when: oradata_file_details.stat.exists and oradata_file_details.stat.islnk == true
+
+      - name: Copy the oracle database configuration file for silent installation
+        template:
+          src: oracle-xe-18c.conf.j2
+          dest: /etc/sysconfig/oracle-xe-18c.conf
+          owner: root
+          group: root
+          mode: '0775'
+
+      - name: Copy the Oracle profile file to set the environment for all users
+        template:
+          src: oracle_env.sh.j2
+          dest: /etc/profile.d/oracle_env.sh
+          owner: root
+          group: root
+          mode: '0644'
+      
+      - name: Create Oracle user if it does not exists
+        user:
+          name: oracle
+          comment: Oracle User
+          shell: /bin/bash
+          home: /home/oracle
+          create_home: yes
+          groups: oinstall, dba, oper, backupdba, dgdba, kmdba, racdba
+          append: yes
+          state: present
+        tags: user
+      
+      - name: Update the /etc/hosts file with the ipaddress-hostname entry
+        lineinfile:
+          path: /etc/hosts
+          line: "{{ ansible_default_ipv4.address }} {{ ansible_hostname }}"
+          insertbefore: BOF
+
+      - name: Configure the Oracle database
+        command: /etc/init.d/oracle-xe-18c configure
+
+        
+        
+
