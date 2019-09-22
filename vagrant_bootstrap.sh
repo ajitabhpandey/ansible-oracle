@@ -4,12 +4,16 @@ echo "Use 'vagrant status' command to find out the machine status"
 
 TARGET_DEVICE="/dev/sdb"
 MOUNT_POINT="/opt/oradata"
+FILESYSTEM="ext4"
 
 # Create a type 83 (linux) partition on a whole disk
 echo "${TARGET_DEVICE}1: Id=83" | sudo sfdisk ${TARGET_DEVICE}
 
 # Create ext4 filesystem
-sudo mkfs.ext4 ${TARGET_DEVICE}1
+if [ ${FILESYSTEM} == 'ext4']
+then
+  sudo mkfs.ext4 ${TARGET_DEVICE}1
+fi
 
 # Create a desired mount point if it does not already exists
 if [ -d "${MOUNT_POINT}" ]
@@ -29,8 +33,16 @@ fi
 # Mount under the disk under the mount point
 sudo mount ${TARGET_DEVICE}1 ${MOUNT_POINT}
 
-# Copy the local RPMs to /tmp to facilitate ansible deployment
+# Find UUID of the TARGET_DEVICE
+UUID=$(blkid ${TARGET_DEVICE}1 | awk '{print $2}')
+echo -e '${UUID} ${MOUNT_POINT} \t ${FILESYSTEM} \t defaults \t 0 0'   >> /etc/fstab
+
+# Copy the software packages to /tmp to facilitate ansible deployment
 sudo cp /vagrant/provision/files/*.rpm /tmp
+sudo cp /vagrant/provision/files/*.zip /tmp
+
+# Disable SELinux
+sudo setenforce permissive
 
 
 

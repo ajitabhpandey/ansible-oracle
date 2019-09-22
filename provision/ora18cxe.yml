@@ -13,15 +13,18 @@
             - /tmp/oracle-database-preinstall-18c-1.0-1.el7.x86_64.rpm
             - /tmp/oracle-database-xe-18c-1.0-1.x86_64.rpm
           state: present
+        tags: [install,oracle]
 
       - name: Check if {{ ORADATA }} exists
         stat:
           path: "{{ ORADATA }}"
         register: oradata_file_details
+        tags: [install,oracle]
       
       - debug:
           msg: "{{ ORADATA }} exists"
         when: oradata_file_details.stat.exists
+        tags: [install,oracle]
 
       - name: Creating {{ ORADATA }} if it does not exist
         file:
@@ -32,6 +35,7 @@
           group: dba
           recurse: yes
         when: ! oradata_file_details.stat.exists
+        tags: [install,oracle]
         
       - name: Change the ownership and permissions if {{ ORADATA }} directory exists
         file:
@@ -41,6 +45,7 @@
           group: dba
           recurse: yes
         when: oradata_file_details.stat.exists and oradata_file_details.stat.isdir == true
+        tags: [install,oracle]
       
       - name: Change the ownership and permissions of target if {{ ORADATA }} is a symlink
         file:
@@ -50,6 +55,7 @@
           group: dba
           follow: yes
         when: oradata_file_details.stat.exists and oradata_file_details.stat.islnk == true
+        tags: [install,oracle]
 
       - name: Copy the oracle database configuration file for silent installation
         template:
@@ -58,6 +64,7 @@
           owner: root
           group: root
           mode: '0775'
+        tags: [install,oracle,configure]
 
       - name: Copy the Oracle profile file to set the environment for all users
         template:
@@ -66,6 +73,7 @@
           owner: root
           group: root
           mode: '0644'
+        tags: [install,oracle]
       
       - name: Create Oracle user if it does not exists
         user:
@@ -77,16 +85,23 @@
           groups: oinstall, dba, oper, backupdba, dgdba, kmdba, racdba
           append: yes
           state: present
-        tags: user
+        tags: [install,oracle]
       
       - name: Update the /etc/hosts file with the ipaddress-hostname entry
         lineinfile:
           path: /etc/hosts
           line: "{{ ansible_default_ipv4.address }} {{ ansible_hostname }}"
           insertbefore: BOF
+        tags: [install,oracle]
 
       - name: Configure the Oracle database
         command: /etc/init.d/oracle-xe-18c configure
+        register: ora_config
+        failed_when:
+          - ora_config.rc == 1
+          - '"is already configured" not in ora_config.stdout'
+        tags: [install,oracle,configure]
+        
 
         
         

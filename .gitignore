@@ -3,4 +3,5 @@
 .vagrant_hostname
 *.vdi
 *.rpm
+*.zip
 

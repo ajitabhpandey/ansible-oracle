@@ -61,7 +61,7 @@ Vagrant.configure("2") do |config|
     # Use ansible provisioner to deploy required applications on the system. This will 
     # never run, unless explicitly called
     config.vm.provision "ansible_local", type: "ansible", run: "never" do |ansible|
-      ansible.playbook = "provision/ora18cxe.yml"
+      ansible.playbook = "provision/main.yml"
       ansible.verbose = true
     end
 

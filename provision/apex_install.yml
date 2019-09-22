@@ -1,0 +1,59 @@
+---
+  - hosts: all
+    gather_facts: yes
+    become: true
+
+    vars:
+      CONTAINER_NAME: "XEPDB1"
+      APEX_ARCHIVE: "apex_19.1_en.zip"
+      APEX_DEST_LOCATION: "/opt"
+      APEX_TABLESPACE: "APEX_TABSPACE"
+      APEX_TABLESPACE_DATA_FILE: "xe_apex_tabspace_01.dat"
+      APEX_PUBLIC_USER_PASSWORD: "Passw0rd123"
+      APEX_LISTENER_PASSWORD: "Passw0rd123"
+      APEX_REST_PUBLIC_USER_PASSWORD: "Passw0rd123"
+      APEX_ADMIN_USER: "ADMIN"
+      APEX_ADMIN_USER_EMAIL_ADDRESS: "support@its.in"
+      APEX_ADMIN_USER_PASSAORD: "Passw0rd123"
+      APEX_ADMIN_USER_PRIVILEGES: "ADMIN"
+      ORACLE_USER: "oracle"
+      ORACLE_GROUP: "dba"
+      TOMCAT_WEBAPPS: "/usr/share/tomcat/webapps"
+
+    tasks:
+      - name: Ensures "{{ APEX_DEST_LOCATION }}" exists
+        file:
+          path: "{{ APEX_DEST_LOCATION }}"
+          state: directory
+          owner: "{{ ORACLE_USER }}"
+          group: "{{ ORACLE_GROUP }}"
+          mode: 0755
+        tags: [install,apex]
+      
+      - name: Unarchive the file to the apex directory
+        unarchive:
+          src: "/tmp/{{ APEX_ARCHIVE }}"
+          dest: "{{ APEX_DEST_LOCATION }}"
+          remote_src: yes
+          owner: "{{ ORACLE_USER }}"
+          group: "{{ ORACLE_GROUP }}"
+        tags: [install,apex]
+
+      - name: Copy the apex installation script
+        template:
+          src: apex_install.sh.j2
+          dest: /usr/local/bin/apex_install.sh
+          owner: "{{ ORACLE_USER }}"
+          group: "{{ ORACLE_GROUP }}"
+          mode: 0555
+        tags: [install,apex]
+      
+      - name: Run the APEX Installation script
+        command: chdir="{{ APEX_DEST_LOCATION }}/apex" /usr/local/bin/apex_install.sh
+        become: true
+        become_user: "{{ ORACLE_USER }}"
+        tags: [install,apex]
+      
+      - name: Copy APEX Images to Tomcat WebApps Folder
+        command: cp -r  "{{ APEX_DEST_LOCATION }}/apex/images" "{{ TOMCAT_WEBAPPS }}"
+        tags: [install,apex]

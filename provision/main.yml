@@ -1,0 +1,5 @@
+- name: Include Playbook for installing ORACLE 18c XE
+  import_playbook: ora18cxe.yml
+
+- name: Include Playbook for installing APEX
+  import_playbook: apex_install.yml
