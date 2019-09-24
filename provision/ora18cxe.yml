@@ -4,7 +4,9 @@
     become: true
 
     vars:
-      ORADATA: "/opt/oradata/"
+      ORADATA: "/opt/oradata"
+      ORACLE_BASE: "/opt/oracle"
+      ORACLE_HOME: "{{ ORACLE_BASE }}/product/18c/dbhomeXE"
 
     tasks:
       - name: Install Oracle 18c XE from local filesystem
@@ -101,6 +103,20 @@
           - ora_config.rc == 1
           - '"is already configured" not in ora_config.stdout'
         tags: [install,oracle,configure]
+
+      - name: Add the PDB Service to tnsnames
+        blockinfile:
+          path: "{{ ORACLE_HOME }}/network/admin/tnsnames.ora"
+          insertafter: EOF
+          block: |
+            XEPDB1 =
+              (DESCRIPTION =
+                (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 1521))
+                (CONNECT_DATA =
+                  (SERVER = DEDICATED)
+                  (SERVICE_NAME = XEPDB1)
+                )
+              )
         
 
         

@@ -3,3 +3,6 @@
 
 - name: Include Playbook for installing APEX
   import_playbook: apex_install.yml
+
+- name: Include Playbook for installing APEX
+  import_playbook: ords_install.yml

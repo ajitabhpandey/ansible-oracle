@@ -1,0 +1,101 @@
+---
+  - hosts: all
+    gather_facts: yes
+    become: true
+
+    vars:
+      CONTAINER_NAME: "XEPDB1"
+      ORDS_ARCHIVE: "ords-19.2.0.199.1647.zip"
+      ORDS_DEST_LOCATION: "/opt/ords"
+      ORDS_CONFIG_DIRETORY: "{{ ORDS_DEST_LOCATION }}/conf"
+      ORDS_TABLESPACE: "ORDS_TABSPACE"
+      ORDS_TABLESPACE_DATA_FILE: "xe_ords_tabspace_01.dat"
+      APEX_PUBLIC_USER_PASSWORD: "Passw0rd123"
+      APEX_LISTENER_PASSWORD: "Passw0rd123"
+      APEX_REST_PUBLIC_USER_PASSWORD: "Passw0rd123"
+      ORDS_PUBLIC_USER_PASSWORD: "Passw0rd123"
+      SYS_PASSWORD: "Passw0rd123"
+      ORACLE_USER: "oracle"
+      ORACLE_GROUP: "dba"
+      TOMCAT_USER: "tomcat"
+      TOMCAT_GROUP: "tomcat"
+      TOMCAT_WEBAPPS: "/usr/share/tomcat/webapps"
+
+    tasks:
+      - name: Ensures "{{ ORDS_DEST_LOCATION }}" exists
+        file:
+          path: "{{ ORDS_DEST_LOCATION }}"
+          state: directory
+          owner: "{{ ORACLE_USER }}"
+          group: "{{ ORACLE_GROUP }}"
+          mode: 0755
+        tags: [install,ords]
+      
+      - name: Unarchive the file to the apex directory
+        unarchive:
+          src: "/tmp/{{ ORDS_ARCHIVE }}"
+          dest: "{{ ORDS_DEST_LOCATION }}"
+          remote_src: yes
+          owner: "{{ ORACLE_USER }}"
+          group: "{{ ORACLE_GROUP }}"
+        tags: [install,ords]
+      
+      - name: Create ORDS Configuration directory
+        file:
+          path: "{{ ORDS_CONFIG_DIRETORY }}"
+          state: directory
+          owner: "{{ ORACLE_USER }}"
+          group: "{{ ORACLE_GROUP }}"
+          mode: 0755
+        tags: [install,ords]
+
+      - name: Create directory to hold ORDS params file
+        file:
+          path: "{{ ORDS_DEST_LOCATION }}/params"
+          state: directory
+          owner: "{{ ORACLE_USER }}"
+          group: "{{ ORACLE_GROUP }}"
+          mode: 0755
+        tags: [install,ords]
+
+      - name: Copy ORDS params file for silent installation
+        template:
+          src: ords_params.properties.j2
+          dest: "{{ ORDS_DEST_LOCATION }}/params/ords_params.properties"
+          owner: "{{ ORACLE_USER }}"
+          group: "{{ ORACLE_GROUP }}"
+          mode: 0755
+        tags: [install,ords]
+
+      - name: Copy ORDS pre-install shell script
+        template:
+          src: ords_pre_install.sh.j2
+          dest: /usr/local/bin/ords_pre_install.sh
+          owner: "{{ ORACLE_USER }}"
+          group: "{{ ORACLE_GROUP }}"
+          mode: 0555
+        tags: [install,ords]
+
+      - name: Run the ORDS Pre Installation script
+        command: chdir="{{ ORDS_DEST_LOCATION }}" /usr/local/bin/ords_pre_install.sh
+        become: true
+        become_user: "{{ ORACLE_USER }}"
+        register: ords_preinstall_status
+        failed_when:
+          - ords_preinstall_status.rc != 0
+          - '" does not exist" not in ords_preinstall_status.stdout'
+        tags: [install,ords]
+
+      - name: Install ORDS
+        command: chdir="{{ ORDS_DEST_LOCATION }}" java -Dconfig.dir="{{ ORDS_CONFIG_DIRETORY }}" -jar ords.war install simple --preserveParamFile
+        become: true
+        become_user: "{{ ORACLE_USER }}"
+        tags: [install,ords]
+
+      - name: Copy ORDS.war in the tomcat webapp directory
+        copy:
+          src: "{{ ORDS_DEST_LOCATION }}/ords.war"
+          dest: "{{ TOMCAT_WEBAPPS }}"
+          remote_src: yes
+          force: yes
+        tags: [install,ords]

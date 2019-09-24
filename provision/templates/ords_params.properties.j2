@@ -1,0 +1,25 @@
+db.hostname=localhost
+db.port=1521
+# CUSTOMIZE db.servicename
+db.servicename={{ CONTAINER_NAME }}
+db.username=APEX_PUBLIC_USER
+db.password={{ APEX_PUBLIC_USER_PASSWORD }}
+migrate.apex.rest=false
+plsql.gateway.add=true
+rest.services.apex.add=true
+rest.services.ords.add=true
+schema.tablespace.default={{ ORDS_TABLESPACE }}
+schema.tablespace.temp=TEMP
+standalone.mode=FALSE
+#standalone.http.port=8080
+#standalone.use.https=false
+# CUSTOMIZE standalone.static.images to point to the directory 
+# containing the images directory of your APEX distribution
+#standalone.static.images=/home/oracle/apex/images
+user.apex.listener.password={{ APEX_LISTENER_PASSWORD }}
+user.apex.restpublic.password={{ APEX_REST_PUBLIC_USER_PASSWORD }}
+user.public.password={{ ORDS_PUBLIC_USER_PASSWORD }}
+user.tablespace.default={{ ORDS_TABLESPACE }}
+user.tablespace.temp=TEMP
+sys.user=SYS
+sys.password={{ SYS_PASSWORD }}
