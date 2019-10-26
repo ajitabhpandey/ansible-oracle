@@ -10,7 +10,7 @@ FILESYSTEM="ext4"
 echo "${TARGET_DEVICE}1: Id=83" | sudo sfdisk ${TARGET_DEVICE}
 
 # Create ext4 filesystem
-if [ ${FILESYSTEM} == 'ext4']
+if [ ${FILESYSTEM} == 'ext4' ]
 then
   sudo mkfs.ext4 ${TARGET_DEVICE}1
 fi
@@ -35,7 +35,13 @@ sudo mount ${TARGET_DEVICE}1 ${MOUNT_POINT}
 
 # Find UUID of the TARGET_DEVICE
 UUID=$(blkid ${TARGET_DEVICE}1 | awk '{print $2}')
-echo -e '${UUID} ${MOUNT_POINT} \t ${FILESYSTEM} \t defaults \t 0 0'   >> /etc/fstab
+
+if [ ! -z "${UUID}" ] 
+then
+  echo -e "${UUID} ${MOUNT_POINT} \t ${FILESYSTEM} \t defaults \t 0 0"   >> /etc/fstab
+else 
+  echo "UUID is empty"
+fi
 
 # Copy the software packages to /tmp to facilitate ansible deployment
 sudo cp /vagrant/provision/files/*.rpm /tmp
@@ -43,6 +49,7 @@ sudo cp /vagrant/provision/files/*.zip /tmp
 
 # Disable SELinux
 sudo setenforce permissive
+
 
 
 
