@@ -1,5 +1,6 @@
 ---
   - hosts: all
+    # iproute2 package is needed for network facts to be populated
     gather_facts: yes
     become: true
 
@@ -9,12 +10,32 @@
       ORACLE_HOME: "{{ ORACLE_BASE }}/product/18c/dbhomeXE"
 
     tasks:
-      - name: Install Oracle 18c XE from local filesystem
+      - debug: 
+          msg: "IPv4 Address  {{ ansible_default_ipv4.address }}"
+
+      - name: Install Oracle 18c XE Preinstall from local filesystem
         yum:
           name: 
             - /tmp/oracle-database-preinstall-18c-1.0-1.el7.x86_64.rpm
+          state: present
+        when: ansible_distribution=="CentOS" or ansible_distribution=="RedHat"
+        tags: [install,oracle]
+
+      - name: Install Oracle 18c XE Preinstall
+        yum:
+          name: 
+            - oracle-database-preinstall-18c.x86_64
+          state: present
+        when: ansible_distribution=="OracleLinux" and ansible_distribution_major_version=="7.0"
+        tags: [install,oracle]
+
+      - name: Install Oracle 18c XE from local filesystem
+        yum:
+          name: 
             - /tmp/oracle-database-xe-18c-1.0-1.x86_64.rpm
           state: present
+        environment:
+          ORACLE_DOCKER_INSTALL: "{{ 'true' if ansible_virtualization_type == 'docker' else 'false' }}"
         tags: [install,oracle]
 
       - name: Check if {{ ORADATA }} exists
@@ -28,7 +49,7 @@
         when: oradata_file_details.stat.exists
         tags: [install,oracle]
 
-      - name: Creating {{ ORADATA }} if it does not exist
+      - name: Creating {{ ORADATA }}
         file:
           path: "{{ ORADATA }}"
           state: directory
@@ -36,7 +57,7 @@
           owner: oracle
           group: dba
           recurse: yes
-        when: ! oradata_file_details.stat.exists
+        when: (ansible_virtualization_type == "docker") or (oradata_file_details.stat.exists == false)
         tags: [install,oracle]
         
       - name: Change the ownership and permissions if {{ ORADATA }} directory exists
@@ -76,7 +97,15 @@
           group: root
           mode: '0644'
         tags: [install,oracle]
-      
+
+      - name: Creating required groups
+        group:
+          name: "{{ item }}"
+          state: present
+        loop:
+          - oinstall
+          - dba
+
       - name: Create Oracle user if it does not exists
         user:
           name: oracle
@@ -84,17 +113,18 @@
           shell: /bin/bash
           home: /home/oracle
           create_home: yes
-          groups: oinstall, dba, oper, backupdba, dgdba, kmdba, racdba
+          groups: oinstall, dba
           append: yes
           state: present
         tags: [install,oracle]
       
-      - name: Update the /etc/hosts file with the ipaddress-hostname entry
-        lineinfile:
-          path: /etc/hosts
-          line: "{{ ansible_default_ipv4.address }} {{ ansible_hostname }}"
-          insertbefore: BOF
-        tags: [install,oracle]
+#      - name: Update the /etc/hosts file with the ipaddress-hostname entry (on non-docker hosts)
+#        lineinfile:
+#          path: /etc/hosts
+#          line: "{{ ansible_default_ipv4.address }} {{ ansible_hostname }}"
+#          insertbefore: BOF
+#        when: ! ansible_virtualization_type == "docker"
+#        tags: [install,oracle]
 
       - name: Configure the Oracle database
         command: /etc/init.d/oracle-xe-18c configure
@@ -102,6 +132,8 @@
         failed_when:
           - ora_config.rc == 1
           - '"is already configured" not in ora_config.stdout'
+        environment:
+          ORACLE_DOCKER_INSTALL: "{{ 'true' if ansible_virtualization_type == 'docker' else 'false' }}"
         tags: [install,oracle,configure]
 
       - name: Add the PDB Service to tnsnames
