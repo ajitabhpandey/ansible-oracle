@@ -1,0 +1,56 @@
+{
+    "_comment": "iproute2 package is needed by ansible for network facts to be populated.",
+    "variables": {
+      "ansible_host": "default",
+      "ansible_connection": "docker"
+    },
+    "builders": [
+      {
+        "type": "docker",
+        "image": "oraclelinux:7-slim",
+        "commit": "true",
+        "run_command": [
+          "-d",
+          "-i",
+          "-t",
+          "--name",
+          "{{user `ansible_host`}}",
+          "{{.Image}}",
+          "/bin/bash"
+        ]
+      }
+    ],
+    "provisioners": [
+      {
+        "type": "file",
+        "source": "provision/files/",
+        "destination": "/tmp/",
+        "direction": "upload"
+      },
+      {
+        "type": "shell",
+        "inline": [
+          "yum -y update",
+          "yum -y install iproute"
+        ]
+      },
+      {
+        "type": "ansible",
+        "user": "root",
+        "playbook_file": "provision/ora18cxe.yml",
+        "extra_arguments": [
+          "--extra-vars",
+          "ansible_host={{user `ansible_host`}} ansible_connection={{user `ansible_connection`}}"
+        ]
+      }
+    ],
+    "post-processors": [
+      [
+        {
+          "type": "docker-tag",
+          "repository": "ajitabhpandey/ora18cxeapx19",
+          "tag": "0.1"
+        }
+      ]
+    ]
+  }
