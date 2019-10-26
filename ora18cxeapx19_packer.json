@@ -42,6 +42,15 @@
           "--extra-vars",
           "ansible_host={{user `ansible_host`}} ansible_connection={{user `ansible_connection`}}"
         ]
+      },
+      {
+        "type": "ansible",
+        "user": "root",
+        "playbook_file": "provision/apex_install.yml",
+        "extra_arguments": [
+          "--extra-vars",
+          "ansible_host={{user `ansible_host`}} ansible_connection={{user `ansible_connection`}}"
+        ]
       }
     ],
     "post-processors": [
