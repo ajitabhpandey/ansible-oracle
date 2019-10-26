@@ -5,7 +5,9 @@
 
     vars:
       CONTAINER_NAME: "XEPDB1"
-      ORDS_ARCHIVE: "ords-19.2.0.199.1647.zip"
+      APEX_ARCHIVE: "apex_19.1_en.zip"
+      APEX_DEST_LOCATION: "/opt"
+      ORDS_ARCHIVE: "ords-19.1.0.092.1545.zip"
       ORDS_DEST_LOCATION: "/opt/ords"
       ORDS_CONFIG_DIRETORY: "{{ ORDS_DEST_LOCATION }}/conf"
       ORDS_TABLESPACE: "ORDS_TABSPACE"
@@ -99,3 +101,25 @@
           remote_src: yes
           force: yes
         tags: [install,ords]
+
+      - name: Ensures "{{ APEX_DEST_LOCATION }}" exists
+        file:
+          path: "{{ APEX_DEST_LOCATION }}"
+          state: directory
+          owner: "{{ ORACLE_USER }}"
+          group: "{{ ORACLE_GROUP }}"
+          mode: 0755
+        tags: [install,apex, ords]
+      
+      - name: Unarchive the file to the apex directory
+        unarchive:
+          src: "/tmp/{{ APEX_ARCHIVE }}"
+          dest: "{{ APEX_DEST_LOCATION }}"
+          remote_src: yes
+          owner: "{{ ORACLE_USER }}"
+          group: "{{ ORACLE_GROUP }}"
+        tags: [install,apex, ords]
+
+      - name: Copy APEX Images to Tomcat WebApps Folder
+        command: cp -r  "{{ APEX_DEST_LOCATION }}/apex/images" "{{ TOMCAT_WEBAPPS }}"
+        tags: [install,apex, ords]

@@ -1,7 +1,7 @@
 ---
   - hosts: all
     gather_facts: yes
-    become: true
+    become: true 
 
     vars:
       CONTAINER_NAME: "XEPDB1"
@@ -52,8 +52,4 @@
         command: chdir="{{ APEX_DEST_LOCATION }}/apex" /usr/local/bin/apex_install.sh
         become: true
         become_user: "{{ ORACLE_USER }}"
-        tags: [install,apex]
-      
-      - name: Copy APEX Images to Tomcat WebApps Folder
-        command: cp -r  "{{ APEX_DEST_LOCATION }}/apex/images" "{{ TOMCAT_WEBAPPS }}"
         tags: [install,apex]
