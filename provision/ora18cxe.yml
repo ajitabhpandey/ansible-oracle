@@ -117,14 +117,18 @@
           append: yes
           state: present
         tags: [install,oracle]
+
+      - name: Remove session line from pam.d/su
+        command: sed -i -r '/session\s+include\s+system-auth/d' /etc/pam.d/su
+        when: ansible_virtualization_type == 'docker'
       
-#      - name: Update the /etc/hosts file with the ipaddress-hostname entry (on non-docker hosts)
-#        lineinfile:
-#          path: /etc/hosts
-#          line: "{{ ansible_default_ipv4.address }} {{ ansible_hostname }}"
-#          insertbefore: BOF
-#        when: ! ansible_virtualization_type == "docker"
-#        tags: [install,oracle]
+      - name: Update the /etc/hosts file with the ipaddress-hostname entry (on non-docker hosts)
+        lineinfile:
+          path: /etc/hosts
+          line: "{{ ansible_default_ipv4.address }} {{ ansible_hostname }}"
+          insertbefore: BOF
+        when: ! ansible_virtualization_type == "docker"
+        tags: [install,oracle]
 
       - name: Configure the Oracle database
         command: /etc/init.d/oracle-xe-18c configure
