@@ -7,7 +7,7 @@
       CONTAINER_NAME: "XEPDB1"
       APEX_ARCHIVE: "apex_19.1_en.zip"
       APEX_DEST_LOCATION: "/opt"
-      ORDS_ARCHIVE: "ords-19.1.0.092.1545.zip"
+      ORDS_ARCHIVE: "ords-19.2.0.199.1647.zip"
       ORDS_DEST_LOCATION: "/opt/ords"
       ORDS_CONFIG_DIRETORY: "{{ ORDS_DEST_LOCATION }}/conf"
       ORDS_TABLESPACE: "ORDS_TABSPACE"
@@ -24,6 +24,15 @@
       TOMCAT_WEBAPPS: "/usr/share/tomcat/webapps"
 
     tasks:
+      - name: Install tomcat
+        yum:
+          name:
+            - java
+            - tomcat
+          state: present
+        when: ansible_distribution=="CentOS" or ansible_distribution=="RedHat"
+        tags: [install,tomcat,ords]
+
       - name: Ensures "{{ ORDS_DEST_LOCATION }}" exists
         file:
           path: "{{ ORDS_DEST_LOCATION }}"
@@ -88,6 +97,12 @@
           - '" does not exist" not in ords_preinstall_status.stdout'
         tags: [install,ords]
 
+      - name: Set config DIR in ords.war
+        command: chdir="{{ ORDS_DEST_LOCATION }}" java -jar ords.war configdir "{{ ORDS_CONFIG_DIRETORY }}"
+        become: true
+        become_user: "{{ ORACLE_USER }}"
+        tags: [install,ords]
+
       - name: Install ORDS
         command: chdir="{{ ORDS_DEST_LOCATION }}" java -Dconfig.dir="{{ ORDS_CONFIG_DIRETORY }}" -jar ords.war install simple --preserveParamFile
         become: true
@@ -123,3 +138,10 @@
       - name: Copy APEX Images to Tomcat WebApps Folder
         command: cp -r  "{{ APEX_DEST_LOCATION }}/apex/images" "{{ TOMCAT_WEBAPPS }}"
         tags: [install,apex, ords]
+
+      - name: Create "/i" symlink
+        file:
+          src: "{{ TOMCAT_WEBAPPS }}/images/"
+          dest: "{{ TOMCAT_WEBAPPS }}/i"
+          state: link
+        tags: [install,apex,ords]
