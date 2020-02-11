@@ -1,6 +1,8 @@
 # ansible-oracle
 
-Deploying oracle using ansible
+Deploying oracle using ansible.
+
+NOTE - This setup at this moment installs the entire stack, Oracle, Apex, ORDS-on-tomcat in one machine.
 
 ## Requirement
 
@@ -20,7 +22,7 @@ The Oracle Express Edition (XE) RPM should be downloaded and placed in **provisi
 └── vagrant_bootstrap.sh
 ```
 
-The VDI file visible in the above setup is the additional data disk I created to hold the Oracle database and backups etc.
+The VDI file visible in the above setup is the additional data disk I created to hold the Oracle database and backups etc. while building on my local laptop.
 
 ## Vagrant Build
 
@@ -30,6 +32,12 @@ or, after the node is already up if a need to reprovision comes due to changes i
 `$ vagrant provision --provision-with ansible_local`
 
 NOTE - The first time ansible provisioner has bailed out in the middle during the oracle DB configuration. I had to run the ansible provisioner again and it has worked. This needs to be more researched.
+
+## Ansible Build
+
+If you have an existing machine, ansible playbooks can be called directly to build it.
+
+`$ ansible-playbook -i 192.168.5.168, --private-key ~/.ssh/id_rsa -e 'ansible_ssh_user=root' provision/main.yml`
 
 ## Docker Image Build Using Packer
 
