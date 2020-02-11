@@ -39,6 +39,14 @@ If you have an existing machine, ansible playbooks can be called directly to bui
 
 `$ ansible-playbook -i 192.168.5.168, --private-key ~/.ssh/id_rsa -e 'ansible_ssh_user=root' provision/main.yml`
 
+The main.yml playbook includes three different playbooks for installing oracle, apex and ords respectively in that order. Depending on the requirement, any of these playbooks can be directly called upon - 
+
+`$ ansible-playbook -i 192.168.5.168, --private-key ~/.ssh/id_rsa -e 'ansible_ssh_user=root' provision/ora18cxe.yml`
+
+`$ ansible-playbook -i 192.168.5.168, --private-key ~/.ssh/id_rsa -e 'ansible_ssh_user=root' provision/apex_install.yml`
+
+`$ ansible-playbook -i 192.168.5.168, --private-key ~/.ssh/id_rsa -e 'ansible_ssh_user=root' provision/ords_install.yml`
+
 ## Docker Image Build Using Packer
 
 To build an image with oracle XE and APEX, use the following command - 

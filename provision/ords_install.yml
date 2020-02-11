@@ -5,7 +5,7 @@
 
     vars:
       CONTAINER_NAME: "XEPDB1"
-      APEX_ARCHIVE: "apex_19.1_en.zip"
+      APEX_ARCHIVE: "apex_19.2_en.zip"
       APEX_DEST_LOCATION: "/opt"
       ORDS_ARCHIVE: "ords-19.2.0.199.1647.zip"
       ORDS_DEST_LOCATION: "/opt/ords"
