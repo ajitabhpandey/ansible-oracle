@@ -1,0 +1,110 @@
+---
+- hosts: all
+  gather_facts: yes
+  become: true
+
+  vars:
+    TOMCAT_MAJOR_VERSION: "9"
+    TOMCAT_MINOR_VERSION: "0.8"
+    TOMCAT_VERSION: "{{ TOMCAT_MAJOR_VERSION }}.{{ TOMCAT_MINOR_VERSION }}"
+    TOMCAT_DOWNLOAD_LINK: "http://archive.apache.org/dist/tomcat/tomcat-{{ TOMCAT_MAJOR_VERSION }}/v{{ TOMCAT_VERSION }}/bin/apache-tomcat-{{ TOMCAT_VERSION }}.tar.gz"
+    TOMCAT_INSTALL_LOCATION: "/opt/tomcat"
+    TOMCAT_USER: "tomcat"
+    TOMCAT_GROUP: "tomcat"
+    TOMCAT_PORT: "8080"
+    CATALINA_HOME: "{{ TOMCAT_INSTALL_LOCATION }}/latest"
+    CATALINA_OPTS: "-Xms512M -Xmx1024M -server -XX:+UseParallelGC"
+    JAVA_HOME: "/usr/lib/jvm/jre"
+    JRE_HOME: "/usr/lib/jvm/jre"
+    JAVA_OPTS: "-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom"
+
+  tasks:
+    - name: Install Java Runtime
+      yum:
+        name: 
+            - java
+        state: present
+      when: ansible_distribution=="CentOS" or ansible_distribution=="RedHat"
+      tags: [install,java,tomcat]
+
+    - name: Add group "{{ TOMCAT_GROUP }}"
+      group: 
+        name: "{{ TOMCAT_GROUP }}"
+        system: "yes"
+        state: "present"
+    
+    - name: Add user "{{ TOMCAT_USER }}"
+      user: 
+        name: "{{ TOMCAT_USER }}"
+        system: yes 
+        group: "{{ TOMCAT_GROUP }}"
+        home: "{{ TOMCAT_INSTALL_LOCATION }}"
+        shell: "/bin/bash"
+        state: "present"
+    
+    - name: Create "{{ TOMCAT_INSTALL_LOCATION }}" 
+      file:
+        path: "{{ TOMCAT_INSTALL_LOCATION }}"
+        owner: "{{ TOMCAT_USER }}"
+        group: "{{ TOMCAT_GROUP }}"
+        mode: 0755
+        state: directory
+    
+    - name: Download and Unarchive tomcat
+      unarchive:
+        src: "{{ TOMCAT_DOWNLOAD_LINK }}"
+        dest: "{{ TOMCAT_INSTALL_LOCATION }}"
+        owner: "{{ TOMCAT_USER }}"
+        group: "{{ TOMCAT_GROUP }}"
+        mode: 0755
+        remote_src: True
+    
+    - name: Create a symlink for latest version of tomcat
+      file:
+        src: "{{ TOMCAT_INSTALL_LOCATION }}/apache-tomcat-{{ TOMCAT_VERSION }}"
+        dest: "{{ TOMCAT_INSTALL_LOCATION }}/latest"
+        state: link
+    
+    - name: Change default port for Connector to {{ TOMCAT_PORT }}
+      lineinfile:
+        dest: "{{ TOMCAT_INSTALL_LOCATION }}/latest/conf/server.xml"
+        regexp: '^(\s*)<Connector port="8080" protocol="HTTP/1.1"$'
+        line: '\1<Connector port="{{ TOMCAT_PORT }}" protocol="HTTP/1.1"'
+        backrefs: yes
+
+    - name: Copy SysV init for tomcat
+      template:
+        src: tomcat_sysvinit_service.j2
+        dest: /etc/init.d/tomcat
+        owner: root
+        group: root
+        mode: 0755
+      when: ansible_service_mgr == "sysvinit"
+    
+    - name: Copy Systemd service for tomcat
+      template:
+        src: tomcat_systemd_service.j2
+        dest: /etc/systemd/system/tomcat.service
+        owner: root
+        group: root
+        mode: 0644
+      when: ansible_service_mgr == "systemd"
+    
+    - name: Copy Upstart service for tomcat
+      template:
+        src: tomcat_upstart_service.j2
+        dest: /etc/init/tomcat.conf
+        owner: root
+        group: root
+        mode: 0644
+      when: ansible_service_mgr == "upstart"
+    
+    - name: Reload the Systemctl Daemon
+      command: systemctl daemon-reload
+      when: ansible_service_mgr == "systemd"
+    
+    - name: Start Tomcat
+      service:
+        name: tomcat
+        enabled: yes
+        state: started

@@ -1,0 +1,24 @@
+#!/bin/bash
+# description: Tomcat Start Stop Restart
+# processname: tomcat
+# chkconfig: 234 20 80
+JAVA_HOME="{{ JAVA_HOME }}"
+JRE_HOME="{{ JRE_HOME }}"
+export JAVA_HOME JRE_HOME
+PATH=$JAVA_HOME/bin:$PATH
+export PATH
+CATALINA_HOME="{{ CATALINA_HOME }}"
+
+case $1 in
+start)
+/bin/su {{ TOMCAT_USER }} $CATALINA_HOME/bin/startup.sh
+;;
+stop)
+/bin/su {{ TOMCAT_USER }} $CATALINA_HOME/bin/shutdown.sh
+;;
+restart)
+/bin/su {{ TOMCAT_USER }} $CATALINA_HOME/bin/shutdown.sh
+/bin/su {{ TOMCAT_USER }} $CATALINA_HOME/bin/startup.sh
+;;
+esac
+exit 0

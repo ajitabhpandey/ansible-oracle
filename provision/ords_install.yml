@@ -21,18 +21,9 @@
       ORACLE_GROUP: "dba"
       TOMCAT_USER: "tomcat"
       TOMCAT_GROUP: "tomcat"
-      TOMCAT_WEBAPPS: "/usr/share/tomcat/webapps"
+      TOMCAT_WEBAPPS: "/opt/tomcat/latest/webapps"
 
     tasks:
-      - name: Install tomcat
-        yum:
-          name:
-            - java
-            - tomcat
-          state: present
-        when: ansible_distribution=="CentOS" or ansible_distribution=="RedHat"
-        tags: [install,tomcat,ords]
-
       - name: Ensures "{{ ORDS_DEST_LOCATION }}" exists
         file:
           path: "{{ ORDS_DEST_LOCATION }}"

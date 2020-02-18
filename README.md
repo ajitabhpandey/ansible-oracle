@@ -51,3 +51,36 @@ The main.yml playbook includes three different playbooks for installing oracle, 
 
 To build an image with oracle XE and APEX, use the following command - 
 `packer build ora18cxeapx19_packer.json`
+
+
+# Ansible Playbooks
+
+Few ansible playbooks have been stitched together to deploy the stack.
+
+## main.yml
+
+### Variables
+
+## ora18cxe.yml
+
+### Variables
+
+## apex_install.yml
+
+### Variables
+
+## ords_install.yml
+
+### Variables
+
+## tomcat.yml
+
+Installs the tomcat downloaded from apache website
+
+### Variables
+
+
+# Licence
+
+BSD
+
