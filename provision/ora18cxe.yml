@@ -132,7 +132,10 @@
 
       - name: Configure the Oracle database
         command: /etc/init.d/oracle-xe-18c configure
+        retries: 2
+        delay: 5
         register: ora_config
+        until: ora_config.rc == 0
         failed_when:
           - ora_config.rc == 1
           - '"is already configured" not in ora_config.stdout'
