@@ -18,7 +18,6 @@
       APEX_ADMIN_USER_PRIVILEGES: "ADMIN"
       ORACLE_USER: "oracle"
       ORACLE_GROUP: "dba"
-      TOMCAT_WEBAPPS: "/usr/share/tomcat/webapps"
 
     tasks:
       - name: Ensures "{{ APEX_DEST_LOCATION }}" exists
