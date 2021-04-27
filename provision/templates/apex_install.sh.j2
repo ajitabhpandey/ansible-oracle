@@ -23,7 +23,7 @@ BEGIN
     APEX_UTIL.CREATE_USER(
         p_user_name => '{{ APEX_ADMIN_USER }}',
         p_email_address => '{{ APEX_ADMIN_USER_EMAIL_ADDRESS }}',
-        p_web_password => '{{ APEX_ADMIN_USER_PASSAORD }}',
+        p_web_password => '{{ APEX_ADMIN_USER_PASSWORD }}',
         p_developer_privs => '{{ APEX_ADMIN_USER_PRIVILEGES }}' );
     APEX_UTIL.SET_SECURITY_GROUP_ID( null );
     COMMIT;
