@@ -8,6 +8,7 @@
       ORADATA: "/opt/oradata"
       ORACLE_BASE: "/opt/oracle"
       ORACLE_HOME: "{{ ORACLE_BASE }}/product/18c/dbhomeXE"
+      SYS_PASSWORD: "Passw0rd123"
 
     tasks:
       - debug: 

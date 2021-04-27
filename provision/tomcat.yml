@@ -5,7 +5,7 @@
 
   vars:
     TOMCAT_MAJOR_VERSION: "9"
-    TOMCAT_MINOR_VERSION: "0.8"
+    TOMCAT_MINOR_VERSION: "0.45"
     TOMCAT_VERSION: "{{ TOMCAT_MAJOR_VERSION }}.{{ TOMCAT_MINOR_VERSION }}"
     TOMCAT_DOWNLOAD_LINK: "http://archive.apache.org/dist/tomcat/tomcat-{{ TOMCAT_MAJOR_VERSION }}/v{{ TOMCAT_VERSION }}/bin/apache-tomcat-{{ TOMCAT_VERSION }}.tar.gz"
     TOMCAT_INSTALL_LOCATION: "/opt/tomcat"
