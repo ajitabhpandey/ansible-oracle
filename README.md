@@ -55,11 +55,15 @@ To build an image with oracle XE and APEX, use the following command -
 
 # Ansible Playbooks
 
-Few ansible playbooks have been stitched together to deploy the stack.
+Few ansible playbooks have been stitched together to deploy the stack. Each of these playbooks can be used independent of each other. ORDS and Tomcat are linked together as ords is the application need to run in a Java application server, but minor changes can remove that dependency.
 
 ## main.yml
 
+This playbook includes other playbooks which are to be run on the target.
+
 ### Variables
+
+None so far.
 
 ## ora18cxe.yml
 
@@ -100,12 +104,49 @@ This playbook installs the Oracle APEX application.
 
 ### Variables
 
+| Variable                       | Purpose                                                                                    | Default Value             |
+|--------------------------------|--------------------------------------------------------------------------------------------|---------------------------|
+| CONTAINER_NAME                 | This is the PDB which will be created                                                      | XEPDB1                    |
+| APEX_ARCHIVE                   | APEX installation zip file name. This file should exists in /tmp directory on target host. | apex_19.2_en.zip          |
+| APEX_DEST_LOCATION             | Location where apex zip will be unpacked                                                   | /opt                      |
+| ORDS_ARCHIVE                | ORDS installation zip file name. This file should exists in /tmp directory on target host.                                           | ords-19.2.0.199.1647.zip             |
+| ORDS_DEST_LOCATION      | Location where ORDS zip file will be unpacked                                     | /opt/ords   |
+| ORDS_CONFIG_DIRETORY      | Configuration directory for ORDS                                                              | /opt/ords/conf               |
+| ORDS_TABLESPACE         | Tablespace where ORDS will be installed                                                                 | ORDS_TABSPACE               |
+| ORDS_TABLESPACE_DATA_FILE | Datafile on which ORDS tablespace will be created                                                         | xe_ords_tabspace_01.dat               |
+| APEX_PUBLIC_USER_PASSWORD                | Password for APEX_PUBLIC_USER                                                              | Passw0rd123                     |
+| APEX_LISTENER_PASSWORD  | Password for APEX_LISTENER                                                          | Passw0rd123        |
+| APEX_REST_PUBLIC_USER_PASSWORD       | Password for APEX_REST_PUBLIC user                                                               | Passw0rd123               |
+| ORDS_PUBLIC_USER_PASSWORD     | Password for ORDS_PUBLIC user     | Passw0rd123                     |
+| SYS_PASSWORD     | Password for SYS user     | Passw0rd123                     |
+| ORACLE_USER                    | User which will own the apex application                                                   | oracle                    |
+| ORACLE_GROUP                   | Group which will own the apex application                                                  | dba                       |
+| TOMCAT_USER                    | User which will own the tomcat application                                                   | tomcat                    |
+| TOMCAT_GROUP                   | Group which will own the tomcat application                                                  | tomcat                       |
+| TOMCAT_WEBAPPS                   | Directory where tomcat webapplication are present                                                  | /opt/tomcat/latest/webapps                       |
+
+
 ## tomcat.yml
 
 Installs the tomcat downloaded from apache website
 
 ### Variables
 
+| Variable                | Purpose                                                                                                                                                            | Default Value                                                                          |
+|-------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------|
+| TOMCAT_MAJOR_VERSION    | Tomcat major version which is going to be installed                                                                                                                | 9                                                                                      |
+| TOMCAT_MINOR_VERSION    | Tomcat minor version which is going to be installed                                                                                                                | 0.45                                                                                   |
+| TOMCAT_VERSION          | Full Tomcat version to be installed                                                                                                                                | 9.0.45                                                                                 |
+| TOMCAT_DOWNLOAD_LINK    | Location from where the tomcat archive is to be downloaded                                                                                                         | http://archive.apache.org/dist/tomcat/tomcat-9/v9.0.45/bin/apache-tomcat-9.0.45.tar.gz |
+| TOMCAT_INSTALL_LOCATION | Target directory  where tomcat will be unarchived (installed)                                                                                                      | /opt/tomcat                                                                            |
+| TOMCAT_USER             | Operating system user running tomcat application                                                                                                                   | tomcat                                                                                 |
+| TOMCAT_GROUP            | Operating system group running tomcat application                                                                                                                  | tomcat                                                                                 |
+| TOMCAT_PORT             | Port on which tomcat service will listen                                                                                                                           | 8080                                                                                   |
+| CATALINA_HOME           | Location where tomcat is installed (its a symlink to the latest version of tomcat)                                                                                 | /opt/tomcat/latest                                                                     |
+| CATALINA_OPTS           | Java runtime options used when the "start" or "run" command is executed. The values here can only be used by Tomcat application.                                   | -Xms512M -Xmx1024M -server -XX:+UseParallelGC                                          |
+| JAVA_HOME               | Points to JDK location. Required to run with DEBUG argument. We are just pointing it to JRE location.                                                              | /usr/lib/jvm/jre                                                                       |
+| JRE_HOME                | Points to JRE installtion.                                                                                                                                         | /usr/lib/jvm/jre                                                                       |
+| JAVA_OPTS               | Java runtime options used when the "start", "stop" or "run" command is executed. The value of this variable can also be used by other JAVA applications installed. | -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom                       |
 
 # Licence
 
