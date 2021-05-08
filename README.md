@@ -17,7 +17,9 @@ The Oracle Express Edition (XE) RPM should be downloaded and placed in **provisi
 ├── provision
 │   ├── files
 │   │   ├── oracle-database-preinstall-18c-1.0-1.el7.x86_64.rpm
-│   │   └── oracle-database-xe-18c-1.0-1.x86_64.rpm
+│   │   ├── oracle-database-xe-18c-1.0-1.x86_64.rpm
+|   |   ├── apex_19.2_en.zip
+│   │   └── ords-19.2.0.199.1647.zip
 │   └── ora18cxe.yml
 └── vagrant_bootstrap.sh
 ```
@@ -33,7 +35,7 @@ or, after the node is already up if a need to reprovision comes due to changes i
 
 ## Ansible Build
 
-If you have an existing machine, ansible playbooks can be called directly to build it.
+If you have an existing machine, ansible playbooks can be called directly to build it. However, since at present there is no mechanism in the playbook to place the software files on the target server, please note that the expectation is that the source files of Oracle APEX, ORDS, XE and the XE-Preinstall files should be in the /tmp directory on the server. Perhaps in time I will expand this to include a playbook to copy the source files for installation on the target server. 
 
 `$ ansible-playbook -i 192.168.5.168, --private-key ~/.ssh/id_rsa -e 'ansible_ssh_user=root' provision/main.yml`
 
